@@ -1,0 +1,32 @@
+;
+; MyDriver6.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=
+ClassGuid={ab8b3fe4-a05c-4084-9fda-d29e63bbcace}
+Provider=asfasd
+DriverVer=01/20/2017
+CatalogFile=MyCatalogFile.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+
+
+[Strings]
+ManufacturerName=""
+ClassName=""
+DiskName="MyDriver6 Source Disk"

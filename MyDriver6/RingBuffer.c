@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <Wdm.h>
 
-#define LOG_FILE_NAME  L"log.txt"
+#define LOG_FILE_NAME  L"\\??\\C:\\KloggerTest.log"
 
 
 RingBuffer* initRingBuffer(int size) {

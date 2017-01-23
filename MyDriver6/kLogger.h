@@ -5,8 +5,6 @@
 typedef struct _kLogger
 {
 	RingBuffer* ringBuffer;
-	HANDLE file_handle;
-	void* buffer_flush;
 	PKTHREAD thread_flush;
 	KEVENT event_flush;
 	PKTIMER timer_flush;
@@ -14,4 +12,6 @@ typedef struct _kLogger
 } kLogger;
 
 kLogger* initLogger(int size);
+void destroyKLogger(kLogger* klogger);
 void klog(kLogger* loger, char* buffer);
+void destroyThreadFlush(kLogger* klogger);

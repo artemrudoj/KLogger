@@ -11,9 +11,36 @@ VOID timer_dpc_test_routine(
 	_In_opt_ PVOID  SystemArgument1,
 	_In_opt_ PVOID  SystemArgument2);
 
-NTSTATUS DriverUnload(IN PDRIVER_OBJECT pDriverObject)
+
+VOID KloggerTestUnload(PDRIVER_OBJECT DriverObject);
+
+void stop_klogger_test()
 {
-	return STATUS_SUCCESS;
+	DbgPrint("KLogger: stop test\n");
+
+	if (!dpc_obj[0] || !timer_test[0]) {
+		DbgPrint("KLogger: start was failed\n");
+		return;
+	}
+
+	KeFlushQueuedDpcs();
+
+	for (unsigned i = 0; i < TEST_TIMERS_NUMBER; i++) {
+		KeCancelTimer(timer_test[i]);
+		freeMemory(timer_test[i]);
+		freeMemory(dpc_obj[i]);
+	}
+
+	DbgPrint("KLogger: stop test complete\n");
+}
+
+
+VOID KloggerTestUnload( PDRIVER_OBJECT DriverObject)
+{
+	DbgPrint("KLogger: start DriverUnload\n");
+	destroyKLogger(logger);
+	stop_klogger_test();
+	DbgPrint("KLogger: DriverUnload completed\n");
 }
 
 NTSTATUS  DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pusRegPath) {
@@ -22,11 +49,15 @@ NTSTATUS  DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pusRegPath) 
 	OBJECT_ATTRIBUTES oa;
 	UNICODE_STRING us;
 	PVOID pEvent;
-	//if (!initRingBuffer(240)) {
-		//return -1;
-	//}
+	
+	pDriverObject->DriverUnload = KloggerTestUnload;
 
 	logger = initLogger(1024);
+
+	if (!logger) {
+		DbgPrint("KLogger: Driver Enrty - error creating klogger\n");
+		return STATUS_FAILED_DRIVER_ENTRY;
+	}
 
 	LARGE_INTEGER timeout;
 	LONG period;

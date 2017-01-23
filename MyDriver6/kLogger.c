@@ -24,12 +24,12 @@ kLogger* initLogger(int size) {
 	init_thread_flush(logger);
 	if (!logger->thread_flush) {
 		DbgPrint("KLogger: init error - create thread\n");
-		goto err_openfile;
+		goto err_flush;
 	}
 
 	return (void*)logger;
 
-err_openfile:
+err_flush:
 	destroyRingBuffer(logger->ringBuffer);
 err_rbcreate:
 	freeMemory(logger);
@@ -68,6 +68,7 @@ void init_thread_flush(kLogger* logger)
 		return;
 	}
 
+
 	ObReferenceObjectByHandle(
 		flushing_thread,
 		THREAD_ALL_ACCESS,
@@ -77,6 +78,12 @@ void init_thread_flush(kLogger* logger)
 		NULL);
 
 	ZwClose(flushing_thread);
+}
+
+
+long atomic_set(long* shared, long value) {
+	DbgPrint("KLogger: atomic - set\n");
+	return InterlockedExchange(shared, value);
 }
 
 VOID flush_routine(PVOID context)
@@ -137,4 +144,37 @@ void event_callback(void* context)
 void destroy_events(kLogger* klog)
 {
 	ZwClose(&klog->event_flush);
+}
+
+void destroyKLogger(kLogger* klogger) {
+
+	BOOLEAN prev_stop;
+
+	if (!klogger)
+		return;
+	if (klogger->stop_working)
+		return;
+
+	prev_stop = atomic_set(&klogger->stop_working, TRUE);
+	if (prev_stop)
+		return;
+
+
+	destroy_events(klogger);
+	destroyRingBuffer(klogger->ringBuffer);
+	destroyThreadFlush(klogger);
+}
+
+void destroyThreadFlush(kLogger* klogger)
+{
+	KeWaitForSingleObject(
+		klogger->thread_flush,
+		Executive,
+		KernelMode,
+		FALSE,
+		NULL);
+
+	ObDereferenceObject(klogger->thread_flush);
+
+	DbgPrint("KLogger: flush thread - exit\n");
 }

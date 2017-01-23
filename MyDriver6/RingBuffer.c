@@ -144,7 +144,7 @@ bool isEnoughtForHeader(RingBuffer *buffer, char * pointer) {
 
  bool initLocker(Locker *locker) {
 	 KeInitializeSpinLock(
-		 locker->mutex
+		 &locker->mutex
 	 );
 	 return true;
  }
@@ -177,7 +177,7 @@ bool isEnoughtForHeader(RingBuffer *buffer, char * pointer) {
 
  bool lockForLog(RingBuffer *ringBuffer) {
 	 KeAcquireSpinLock(
-		 ringBuffer->locker.mutex,
+		 &ringBuffer->locker.mutex,
 		 &ringBuffer->locker.current_irql
 	 );
 	 return true;
@@ -185,7 +185,7 @@ bool isEnoughtForHeader(RingBuffer *buffer, char * pointer) {
 
  bool unlockForLog(RingBuffer *ringBuffer) {
 	 KeReleaseSpinLock(
-		 ringBuffer->locker.mutex,
+		 &ringBuffer->locker.mutex,
 		 ringBuffer->locker.current_irql
 	 );
 	 return true;
